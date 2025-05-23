@@ -8,23 +8,23 @@ let mouse = { x: 0, y: 0 };
 let hoverNode = null;
 
 const mapImg = new Image();
-mapImg.src = 'world-map.png'; // Make sure it's in public/
+mapImg.src = 'world-map.png'; // Ensure this is in your public directory
 
 const nodes = [
-  { name: "Africa", xRatio: 0.52, yRatio: 0.58, color: "white", link: "https://drive.google.com/" },
-  { name: "Europe", xRatio: 0.50, yRatio: 0.37, color: "blue", link: "https://example.com" },
-  { name: "Asia", xRatio: 0.70, yRatio: 0.35, color: "yellow", link: "https://youtube.com" },
-  { name: "North America", xRatio: 0.22, yRatio: 0.33, color: "red", link: "https://north.com" },
-  { name: "South America", xRatio: 0.29, yRatio: 0.60, color: "green", link: "https://south.com" },
-  { name: "Australia", xRatio: 0.84, yRatio: 0.75, color: "orange", link: "https://australia.com" },
-  { name: "Antarctica", xRatio: 0.50, yRatio: 0.95, color: "cyan", link: "https://antarctica.com" }
+  { name: "Africa", xRatio: 0.52, yRatio: 0.58, color: "white", link: "https://drive.google.com/drive/folders/1uh7xhju8vr7qaGvfxSwdetxghjaExShr?usp=drive_link" },
+  { name: "Europe", xRatio: 0.50, yRatio: 0.37, color: "blue", link: "https://drive.google.com/drive/folders/1TxImjvrWV8ZbMBczkBHboP_XBMZEZWDC?usp=drive_link" },
+  { name: "Asia", xRatio: 0.70, yRatio: 0.35, color: "yellow", link: "https://drive.google.com/drive/folders/1wZDQDcx_tvWG-epal5AK9BX74W9gxmXX?usp=drive_link" },
+  { name: "North America", xRatio: 0.22, yRatio: 0.33, color: "red", link: "https://drive.google.com/drive/folders/1um7pugbMnzJBz8nOoug2CKC6vCUkMDBM?usp=drive_link" },
+  { name: "South America", xRatio: 0.29, yRatio: 0.60, color: "green", link: "https://drive.google.com/drive/folders/1Cy-VQYlAqQ7jNlFCFxVnBZGbPKcG7zoJ?usp=drive_link" },
+  { name: "Australia", xRatio: 0.84, yRatio: 0.75, color: "orange", link: "https://drive.google.com/drive/folders/1kz2mvuWANTBsy7egWegv55c2WfCuvODL?usp=drive_link" },
+  { name: "Antarctica", xRatio: 0.50, yRatio: 0.95, color: "cyan", link: "https://drive.google.com/drive/folders/1IkjVZOYbDHP0uAhsQImEW5MKDn92kTm0?usp=drive_link" }
 ];
 
 // Preload preview images
 const previews = {};
 for (const node of nodes) {
   const img = new Image();
-  const imgName = `${node.name.toLowerCase().replace(/\s+/g, "-")}-img.png`; // e.g. "north-america-img.png"
+  const imgName = `${node.name.toLowerCase().replace(/\s+/g, "-")}-img.png`;
   img.src = imgName;
   previews[node.name] = img;
 }
@@ -35,7 +35,6 @@ function drawNodes() {
     const x = node.xRatio * canvas.width;
     const y = node.yRatio * canvas.height;
 
-    // Glowing node
     ctx.shadowColor = node.color;
     ctx.shadowBlur = 15;
     ctx.beginPath();
@@ -44,7 +43,6 @@ function drawNodes() {
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // Connect lines
     for (let target of nodes) {
       if (target !== node) {
         const tx = target.xRatio * canvas.width;
@@ -57,7 +55,6 @@ function drawNodes() {
       }
     }
 
-    // Hover detection
     const dx = mouse.x - x;
     const dy = mouse.y - y;
     if (Math.sqrt(dx * dx + dy * dy) < 15) {
@@ -101,22 +98,20 @@ function draw() {
     tooltip.style.left = hoverNode.x + 20 + "px";
     tooltip.style.top = hoverNode.y + "px";
     tooltip.style.display = "block";
-  
+
     const img = previews[hoverNode.name];
     if (img && img.complete) {
       const previewWidth = 200;
       const previewHeight = 120;
-  
-      // Adjust this part for Antarctica to center the image
+
       let imgX = hoverNode.x + 30;
       let imgY = hoverNode.y + 20;
-  
-      // If the node is Antarctica, adjust the image position slightly
+
       if (hoverNode.name === "Antarctica") {
-        imgX = hoverNode.x - -0.9; // Move image left (adjust as needed)
-        imgY = hoverNode.y - 130; // Move image up (adjust as needed)
+        imgX = hoverNode.x - -0.9;
+        imgY = hoverNode.y - 130;
       }
-  
+
       ctx.drawImage(img, imgX, imgY, previewWidth, previewHeight);
     }
   } else {
@@ -127,3 +122,19 @@ function draw() {
 }
 
 draw();
+
+// 🔁 Check orientation on mobile and show overlay
+function checkOrientation() {
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isPortrait = window.innerHeight > window.innerWidth;
+  const notice = document.getElementById('rotate-notice');
+  if (isMobile && isPortrait) {
+    notice.style.display = "flex";
+  } else {
+    notice.style.display = "none";
+  }
+}
+
+window.addEventListener("resize", checkOrientation);
+window.addEventListener("orientationchange", checkOrientation);
+window.addEventListener("load", checkOrientation);
