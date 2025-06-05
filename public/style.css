@@ -1,13 +1,19 @@
-body, html {
+html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
   background: #0a1a2f;
+  height: 100%; /* add this */
+  width: 100%;  /* add this */
 }
 
 canvas {
-  
   display: block;
+  position: fixed; /* fix canvas position */
+  top: 0;
+  left: 0;
+  width: 100vw;  /* make sure canvas fills viewport */
+  height: 100vh;
 }
 
 .label {
