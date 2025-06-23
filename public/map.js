@@ -36,16 +36,16 @@ const nodes = [
   { name: "Antarctica", xRatio: 0.59, yRatio: 0.90, color: "cyan", link: "https://drive.google.com/drive/folders/1IkjVZOYbDHP0uAhsQImEW5MKDn92kTm0?usp=drive_link" }
 ];
 
-// 🟡 Country Anchors for glowing particles
 const countryAnchors = [
-  { name: "Nigeria", xRatio: 0.515, yRatio: 0.45, color: "black", continent: "Africa" },
-  { name: "France", xRatio: 0.52, yRatio: 0.25, color: "blue", continent: "Europe" },
-  { name: "China", xRatio: 0.76, yRatio: 0.24, color: "yellow", continent: "Asia" },
-  { name: "Brazil", xRatio: 0.37, yRatio: 0.63, color: "green", continent: "South America" },
-  // You can add more glowing countries here if needed
+  { name: "Nigeria", xRatio: 0.515, yRatio: 0.45, color: "black", continent: "Africa", flagColors: ["green", "white", "green"] },
+  { name: "France", xRatio: 0.52, yRatio: 0.25, color: "blue", continent: "Europe", flagColors: ["blue", "white", "red"] },
+  { name: "China", xRatio: 0.76, yRatio: 0.24, color: "yellow", continent: "Asia", flagColors: ["red", "gold"] },
+  { name: "Brazil", xRatio: 0.37, yRatio: 0.63, color: "green", continent: "South America", flagColors: ["green", "yellow", "blue"] },
+  { name: "Canada", xRatio: 0.26, yRatio: 0.19, color: "red", continent: "North America", flagColors: ["red", "white"] },
+  { name: "Sydney", xRatio: 0.84, yRatio: 0.69, color: "orange", continent: "Australia", flagColors: ["blue", "red", "white"] },
+  { name: "South Pole", xRatio: 0.59, yRatio: 0.93, color: "cyan", continent: "Antarctica", flagColors: ["white", "blue"] }
 ];
 
-// 📦 Preload preview images
 const previews = {};
 for (const node of nodes) {
   const img = new Image();
@@ -54,21 +54,33 @@ for (const node of nodes) {
   previews[node.name] = img;
 }
 
-// 🌍 Particle System
 const continentParticles = [];
 
 function generateContinentParticles() {
   const numPerContinent = 30;
 
   for (let node of nodes) {
+    const continent = node.name;
     for (let i = 0; i < numPerContinent; i++) {
+      let offsetX = 0, offsetY = 0;
+
+      switch (continent) {
+        case "Africa": offsetX = (Math.random() - 0.5) * 0.06; offsetY = (Math.random() - 0.3) * 0.15; break;
+        case "Europe": offsetX = (Math.random() - 0.5) * 0.05; offsetY = (Math.random() - 0.5) * 0.06; break;
+        case "Asia": offsetX = (Math.random() - 0.5) * 0.14; offsetY = (Math.random() - 0.2) * 0.12; break;
+        case "North America": offsetX = (Math.random() - 0.4) * 0.10; offsetY = (Math.random() - 0.3) * 0.12; break;
+        case "South America": offsetX = (Math.random() - 0.5) * 0.07; offsetY = (Math.random() - 0.4) * 0.10; break;
+        case "Australia": offsetX = (Math.random() - 0.4) * 0.05 + 0.03; offsetY = (Math.random() - 0.5) * 0.05; break;
+        case "Antarctica": offsetX = (Math.random() - 0.5) * 0.06; offsetY = (Math.random() - 0.4) * 0.03; break;
+      }
+
       const angle = Math.random() * Math.PI * 2;
-      const radius = 20 + Math.random() * 40;
-      const speed = 0.005 + Math.random() * 0.005;
+      const radius = 15 + Math.random() * 25;
+      const speed = 0.003 + Math.random() * 0.003;
 
       continentParticles.push({
-        centerXRatio: node.xRatio,
-        centerYRatio: node.yRatio,
+        centerXRatio: node.xRatio + offsetX,
+        centerYRatio: node.yRatio + offsetY,
         angle,
         radius,
         speed,
@@ -78,50 +90,71 @@ function generateContinentParticles() {
     }
   }
 
-// Add glowing particles for specific countries
-for (let anchor of countryAnchors) {
-  const angle = Math.random() * Math.PI * 2;
+  for (let anchor of countryAnchors) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 10 + Math.random() * 15;
+    const speed = 0.008;
 
-  // 🌟 Custom smaller radius for Nigeria only
-  const radius = anchor.name === "Nigeria"
-    ? 5 + Math.random() * 5  // 🔽 Small orbit for Nigeria
-    : 10 + Math.random() * 15;
-
-  const speed = 0.008;
-
-  continentParticles.push({
-    centerXRatio: anchor.xRatio,
-    centerYRatio: anchor.yRatio,
-    angle,
-    radius,
-    speed,
-    color: anchor.color,
-    glow: true
-  });
-}
+    continentParticles.push({
+      centerXRatio: anchor.xRatio,
+      centerYRatio: anchor.yRatio,
+      angle,
+      radius,
+      speed,
+      color: anchor.color,
+      glow: true
+    });
+  }
 }
 generateContinentParticles();
 
+function hexToRgb(color) {
+  const temp = document.createElement("div");
+  temp.style.color = color;
+  document.body.appendChild(temp);
+  const rgb = getComputedStyle(temp).color;
+  document.body.removeChild(temp);
+  const match = rgb.match(/\d+/g);
+  return match ? match.slice(0, 3).join(",") : "255,255,255";
+}
+
 function drawContinentParticles() {
   const time = Date.now() * 0.002;
+
   for (let p of continentParticles) {
     p.angle += p.speed;
 
     const centerX = p.centerXRatio * window.innerWidth;
     const centerY = p.centerYRatio * window.innerHeight;
-
     const x = centerX + Math.cos(p.angle) * p.radius;
     const y = centerY + Math.sin(p.angle) * p.radius;
 
-    const size = p.glow ? 2.5 + Math.sin(time) * 1.5 : 1.8;
+    let size = p.glow ? 3 + Math.sin(time * 4) * 1.5 : 1.8;
 
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
 
     if (p.glow) {
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 15;
+      const alpha = 0.5 + 0.5 * Math.sin(time * 4);
+      const anchor = countryAnchors.find(a =>
+        Math.abs(a.xRatio - p.centerXRatio) < 0.001 &&
+        Math.abs(a.yRatio - p.centerYRatio) < 0.001
+      );
+
+      if (anchor && anchor.flagColors.length > 0) {
+        const index = Math.floor(time * 2) % anchor.flagColors.length;
+        const rgb = hexToRgb(anchor.flagColors[index]);
+        ctx.fillStyle = `rgba(${rgb}, ${alpha})`;
+        ctx.shadowColor = anchor.flagColors[index];
+      } else {
+        ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+        ctx.shadowColor = "yellow";
+      }
+
+      ctx.shadowBlur = 20;
+    } else {
+      ctx.fillStyle = p.color;
+      ctx.shadowBlur = 0;
     }
 
     ctx.fill();
@@ -129,7 +162,6 @@ function drawContinentParticles() {
   }
 }
 
-// 🌐 Draw Nodes (Continents)
 function drawNodes() {
   hoverNode = null;
   for (let node of nodes) {
@@ -164,7 +196,6 @@ function drawNodes() {
   }
 }
 
-// 🖱️ Interactions
 canvas.addEventListener("mousemove", (e) => {
   mouse.x = e.clientX;
   mouse.y = e.clientY;
@@ -195,17 +226,13 @@ canvas.addEventListener("click", (e) => {
   }
 });
 
-// 🔁 Animation Loop
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
   if (mapImg.complete) {
     ctx.drawImage(mapImg, 0, 0, window.innerWidth, window.innerHeight);
   }
 
-  drawContinentParticles(); // 🌍 with glowing ones!
+  drawContinentParticles();
   drawNodes();
 
   if (hoverNode) {
@@ -234,7 +261,6 @@ function draw() {
 }
 draw();
 
-// 📱 Orientation
 function checkOrientation() {
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isPortrait = window.innerHeight > window.innerWidth;
