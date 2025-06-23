@@ -3,28 +3,17 @@ const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
   const dpr = window.devicePixelRatio || 1;
-
-  // Set canvas size in actual pixels * devicePixelRatio
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
-
-  // Set CSS size to actual window size
   canvas.style.width = window.innerWidth + "px";
   canvas.style.height = window.innerHeight + "px";
-
-  // Reset any existing transform before scaling
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-  // Scale drawing context to device pixel ratio
   ctx.scale(dpr, dpr);
-
-  // Enable high-quality image smoothing
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 }
 
-resizeCanvas(); // initial resize
-
+resizeCanvas();
 window.addEventListener("resize", () => {
   resizeCanvas();
   checkOrientation();
@@ -47,7 +36,16 @@ const nodes = [
   { name: "Antarctica", xRatio: 0.59, yRatio: 0.90, color: "cyan", link: "https://drive.google.com/drive/folders/1IkjVZOYbDHP0uAhsQImEW5MKDn92kTm0?usp=drive_link" }
 ];
 
-// Preload preview images
+// 🟡 Country Anchors for glowing particles
+const countryAnchors = [
+  { name: "Nigeria", xRatio: 0.515, yRatio: 0.45, color: "black", continent: "Africa" },
+  { name: "France", xRatio: 0.52, yRatio: 0.25, color: "blue", continent: "Europe" },
+  { name: "China", xRatio: 0.76, yRatio: 0.24, color: "yellow", continent: "Asia" },
+  { name: "Brazil", xRatio: 0.37, yRatio: 0.63, color: "green", continent: "South America" },
+  // You can add more glowing countries here if needed
+];
+
+// 📦 Preload preview images
 const previews = {};
 for (const node of nodes) {
   const img = new Image();
@@ -56,19 +54,92 @@ for (const node of nodes) {
   previews[node.name] = img;
 }
 
-// Helper to get device pixel ratio for mouse coordinates
-const dpr = window.devicePixelRatio || 1;
+// 🌍 Particle System
+const continentParticles = [];
 
+function generateContinentParticles() {
+  const numPerContinent = 30;
+
+  for (let node of nodes) {
+    for (let i = 0; i < numPerContinent; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 20 + Math.random() * 40;
+      const speed = 0.005 + Math.random() * 0.005;
+
+      continentParticles.push({
+        centerXRatio: node.xRatio,
+        centerYRatio: node.yRatio,
+        angle,
+        radius,
+        speed,
+        color: node.color,
+        glow: false
+      });
+    }
+  }
+
+// Add glowing particles for specific countries
+for (let anchor of countryAnchors) {
+  const angle = Math.random() * Math.PI * 2;
+
+  // 🌟 Custom smaller radius for Nigeria only
+  const radius = anchor.name === "Nigeria"
+    ? 5 + Math.random() * 5  // 🔽 Small orbit for Nigeria
+    : 10 + Math.random() * 15;
+
+  const speed = 0.008;
+
+  continentParticles.push({
+    centerXRatio: anchor.xRatio,
+    centerYRatio: anchor.yRatio,
+    angle,
+    radius,
+    speed,
+    color: anchor.color,
+    glow: true
+  });
+}
+}
+generateContinentParticles();
+
+function drawContinentParticles() {
+  const time = Date.now() * 0.002;
+  for (let p of continentParticles) {
+    p.angle += p.speed;
+
+    const centerX = p.centerXRatio * window.innerWidth;
+    const centerY = p.centerYRatio * window.innerHeight;
+
+    const x = centerX + Math.cos(p.angle) * p.radius;
+    const y = centerY + Math.sin(p.angle) * p.radius;
+
+    const size = p.glow ? 2.5 + Math.sin(time) * 1.5 : 1.8;
+
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+
+    if (p.glow) {
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 15;
+    }
+
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+// 🌐 Draw Nodes (Continents)
 function drawNodes() {
   hoverNode = null;
   for (let node of nodes) {
-    const x = node.xRatio * window.innerWidth;  // use CSS pixels for positions
+    const x = node.xRatio * window.innerWidth;
     const y = node.yRatio * window.innerHeight;
 
     ctx.shadowColor = node.color;
     ctx.shadowBlur = 15;
     ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2); // smaller dot size
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
     ctx.fillStyle = node.color;
     ctx.fill();
     ctx.shadowBlur = 0;
@@ -87,18 +158,29 @@ function drawNodes() {
 
     const dx = mouse.x - x;
     const dy = mouse.y - y;
-    if (Math.sqrt(dx * dx + dy * dy) < 25) { // instead of 7
+    if (Math.sqrt(dx * dx + dy * dy) < 25) {
       hoverNode = { ...node, x, y };
     }
   }
 }
 
+// 🖱️ Interactions
 canvas.addEventListener("mousemove", (e) => {
-  // Convert mouse coords from device pixels to CSS pixels
   mouse.x = e.clientX;
   mouse.y = e.clientY;
 });
-
+canvas.addEventListener("touchstart", (e) => {
+  if (e.touches.length > 0) {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+  }
+});
+canvas.addEventListener("touchmove", (e) => {
+  if (e.touches.length > 0) {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+  }
+});
 canvas.addEventListener("click", (e) => {
   const mouseX = e.clientX;
   const mouseY = e.clientY;
@@ -107,24 +189,23 @@ canvas.addEventListener("click", (e) => {
     const y = node.yRatio * window.innerHeight;
     const dx = mouseX - x;
     const dy = mouseY - y;
-    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {  // match hover radius
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
       window.open(node.link, "_blank");
     }
   }
 });
 
+// 🔁 Animation Loop
 function draw() {
-  // Clear entire canvas (in device pixels)
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
   if (mapImg.complete) {
-    // Draw map to fill CSS size, canvas is scaled internally by DPR
     ctx.drawImage(mapImg, 0, 0, window.innerWidth, window.innerHeight);
   }
 
+  drawContinentParticles(); // 🌍 with glowing ones!
   drawNodes();
 
   if (hoverNode) {
@@ -137,15 +218,12 @@ function draw() {
     if (img && img.complete) {
       const previewWidth = 200;
       const previewHeight = 120;
-
       let imgX = hoverNode.x + 1;
       let imgY = hoverNode.y + 1;
-
       if (hoverNode.name === "Antarctica") {
         imgX = hoverNode.x - 0.2;
         imgY = hoverNode.y - 130;
       }
-
       ctx.drawImage(img, imgX, imgY, previewWidth, previewHeight);
     }
   } else {
@@ -154,21 +232,15 @@ function draw() {
 
   requestAnimationFrame(draw);
 }
-
 draw();
 
-// 🔁 Mobile orientation check
+// 📱 Orientation
 function checkOrientation() {
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isPortrait = window.innerHeight > window.innerWidth;
   const notice = document.getElementById('rotate-notice');
-  if (isMobile && isPortrait) {
-    notice.style.display = "flex";
-  } else {
-    notice.style.display = "none";
-  }
+  notice.style.display = (isMobile && isPortrait) ? "flex" : "none";
 }
-
 window.addEventListener("orientationchange", checkOrientation);
 window.addEventListener("load", () => {
   resizeCanvas();
