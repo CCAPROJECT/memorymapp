@@ -87,7 +87,7 @@ function drawNodes() {
 
     const dx = mouse.x - x;
     const dy = mouse.y - y;
-    if (Math.sqrt(dx * dx + dy * dy) < 7) {  // increased radius for easier hover
+    if (Math.sqrt(dx * dx + dy * dy) < 25) { // instead of 7
       hoverNode = { ...node, x, y };
     }
   }
