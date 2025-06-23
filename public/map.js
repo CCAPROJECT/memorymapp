@@ -35,7 +35,7 @@ let mouse = { x: 0, y: 0 };
 let hoverNode = null;
 
 const mapImg = new Image();
-mapImg.src = 'world-map.webp';
+mapImg.src = 'world-map.jpg';
 
 const nodes = [
   { name: "Africa", xRatio: 0.554, yRatio: 0.48, color: "black", link: "https://drive.google.com/drive/folders/1uh7xhju8vr7qaGvfxSwdetxghjaExShr?usp=drive_link" },
