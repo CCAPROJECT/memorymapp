@@ -35,7 +35,7 @@ let mouse = { x: 0, y: 0 };
 let hoverNode = null;
 
 const mapImg = new Image();
-mapImg.src = 'world-map.png';
+mapImg.src = 'world-map.webp';
 
 const nodes = [
   { name: "Africa", xRatio: 0.554, yRatio: 0.48, color: "black", link: "https://drive.google.com/drive/folders/1uh7xhju8vr7qaGvfxSwdetxghjaExShr?usp=drive_link" },
@@ -68,7 +68,7 @@ function drawNodes() {
     ctx.shadowColor = node.color;
     ctx.shadowBlur = 15;
     ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.arc(x, y, 3, 0, Math.PI * 2); // smaller dot size
     ctx.fillStyle = node.color;
     ctx.fill();
     ctx.shadowBlur = 0;
@@ -107,7 +107,7 @@ canvas.addEventListener("click", (e) => {
     const y = node.yRatio * window.innerHeight;
     const dx = mouseX - x;
     const dy = mouseY - y;
-    if (Math.sqrt(dx * dx + dy * dy) < 7) {  // match hover radius
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {  // match hover radius
       window.open(node.link, "_blank");
     }
   }
