@@ -3,28 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <title>Memory Map</title>
-
+  
   <!-- Styles & Icons -->
   <link rel="stylesheet" href="styles/style.css" />
-  <link rel="icon" href="ccalogo.png" type="image/png" />
-  <link rel="preload" as="image" href="world-map.jpg" />
-
+  <link rel="icon" href="public/ccalogo.png" type="image/png" />
+  <link rel="preload" as="image" href="public/world-map.jpg" />
+  
   <!-- Responsive Meta -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden; 
       background-color: black;
+      height: 100%;
+      width: 100%;
     }
     #rotate-notice {
       display: none;
       position: fixed;
-      top: 0;
+      top: 0; 
       left: 0;
-      z-index: 1000;
-      width: 100vw;
+      width: 100vw; 
       height: 100vh;
       background: rgba(0, 0, 0, 0.85);
       color: white;
@@ -33,11 +35,12 @@
       align-items: center;
       text-align: center;
       padding: 20px;
+      z-index: 10000;
     }
     canvas {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; 
+      left: 0; 
       z-index: 0;
     }
     #face-canvas {
@@ -55,35 +58,36 @@
       z-index: 999;
       display: none;
     }
+    /* Camera video preview */
     #camera {
       position: fixed;
       bottom: 15px;
       right: 15px;
       width: 180px;
+      height: auto;
+      z-index: 999;
       border: 2px solid white;
       border-radius: 8px;
-      z-index: 999;
+      background: black;
+      object-fit: cover;
     }
   </style>
 </head>
 <body>
-
-  <!-- Canvas Layers -->
+  <!-- Canvas layers -->
   <canvas id="canvas"></canvas>
   <canvas id="face-canvas"></canvas>
+
+  <!-- Video preview -->
+  <video id="camera" autoplay muted playsinline></video>
 
   <!-- Tooltip -->
   <div id="tooltip" class="label"></div>
 
-  <!-- Webcam Feed -->
-  <video id="camera" autoplay muted playsinline></video>
+  <!-- Rotate notice -->
+  <div id="rotate-notice">Please rotate your device to landscape mode for the best experience.</div>
 
-  <!-- Rotate Notice -->
-  <div id="rotate-notice">
-    Please rotate your device to landscape mode for the best experience.
-  </div>
-
-  <!-- TensorFlow + Models -->
+  <!-- TensorFlow and Models -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
@@ -101,10 +105,24 @@
       const isPortrait = window.innerHeight > window.innerWidth;
       warning.style.display = (isMobile && isPortrait) ? 'flex' : 'none';
     }
-
     window.addEventListener('resize', checkOrientation);
     window.addEventListener('orientationchange', checkOrientation);
     window.addEventListener('load', checkOrientation);
+
+    // Setup camera feed like your working minimal example
+    async function setupCamera() {
+      const video = document.getElementById('camera');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => resolve();
+        });
+      } catch (err) {
+        console.error("Camera setup failed:", err);
+      }
+    }
+    setupCamera();
   </script>
 </body>
 </html>
