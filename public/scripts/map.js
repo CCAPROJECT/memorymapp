@@ -272,3 +272,108 @@ window.addEventListener("load", () => {
   resizeCanvas();
   checkOrientation();
 });
+
+// 📸 CAMERA + EMOTION INTEGRATION (MediaPipe FaceMesh + TensorFlow)
+let detector;
+const video = document.getElementById("camera");
+
+async function setupCamera() {
+  console.log("🎥 Requesting camera access...");
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+
+  return new Promise(resolve => {
+    video.onloadedmetadata = () => {
+      video.play();
+      console.log("✅ Camera started");
+      resolve(video);
+    };
+  });
+}
+
+async function initFaceDetection() {
+  await tf.setBackend("webgl");
+
+  const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+  detector = await faceLandmarksDetection.createDetector(model, {
+    runtime: "mediapipe",
+    refineLandmarks: true,
+    solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"
+  });
+
+  detectLoop();
+}
+
+let lastEmotion = "";
+let lastTriggerTime = 0;
+
+function updateMapFromEmotion(emotion) {
+  const now = Date.now();
+  if (emotion === lastEmotion && now - lastTriggerTime < 3000) return;
+
+  lastEmotion = emotion;
+  lastTriggerTime = now;
+
+  const audio = document.getElementById("smile-sound");
+
+  switch (emotion) {
+    case "happy":
+      document.body.style.filter = "brightness(1.2)";
+      console.log("😊 Bright mood detected");
+
+      // ▶️ Play sound on smile
+      if (audio) {
+        audio.currentTime = 0; // Rewind in case it's already playing
+        audio.play().catch(err => {
+          console.warn("🔇 Sound not played (browser policy?):", err);
+        });
+      }
+      break;
+
+    case "curious":
+      document.body.style.filter = "hue-rotate(45deg)";
+      console.log("😮 Curious look");
+      break;
+
+    case "neutral":
+    default:
+      document.body.style.filter = "none";
+      console.log("😐 Neutral mood");
+  }
+}
+
+async function detectLoop() {
+  if (!video || video.readyState < 2 || !detector) {
+    requestAnimationFrame(detectLoop);
+    return;
+  }
+
+  const faces = await detector.estimateFaces(video);
+  if (faces.length > 0) {
+    const keypoints = faces[0].keypoints;
+
+    const leftMouth = keypoints[61];
+    const rightMouth = keypoints[291];
+    const mouthDistance = Math.abs(rightMouth.x - leftMouth.x);
+
+    const upperEye = keypoints[159].y;
+    const lowerEye = keypoints[145].y;
+    const eyeOpenness = Math.abs(upperEye - lowerEye);
+
+    // Simplified emotion logic
+    if (mouthDistance > 60) {
+      updateMapFromEmotion("happy");
+    } else if (eyeOpenness < 2.5) {
+      updateMapFromEmotion("curious");
+    } else {
+      updateMapFromEmotion("neutral");
+    }
+  }
+
+  requestAnimationFrame(detectLoop);
+}
+
+// 🚀 Start everything
+window.addEventListener("DOMContentLoaded", () => {
+  setupCamera().then(initFaceDetection);
+});
