@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Memory Map</title>
+
+  <!-- Styles & Icons -->
+  <link rel="stylesheet" href="styles/style.css" />
+  <link rel="icon" href="public/ccalogo.png" type="image/png" />
+  <link rel="preload" as="image" href="public/world-map.jpg" />
+
+  <!-- Responsive Meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+    #rotate-notice {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      font-size: 1.5em;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    #face-canvas {
+      pointer-events: none;
+      z-index: 998;
+    }
+    #tooltip.label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
+    #camera {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      width: 180px;
+      border: 2px solid white;
+      border-radius: 8px;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas Layers -->
+  <canvas id="canvas"></canvas>
+  <canvas id="face-canvas"></canvas>
+
+  <!-- Tooltip -->
+  <div id="tooltip" class="label"></div>
+
+  <!-- Webcam Feed -->
+  <video id="camera" autoplay muted playsinline></video>
+
+  <!-- Rotate Notice -->
+  <div id="rotate-notice">
+    Please rotate your device to landscape mode for the best experience.
+  </div>
+
+  <!-- TensorFlow + Models -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+
+  <!-- Custom Scripts -->
+  <script src="scripts/map.js"></script>
+  <script src="scripts/face.js"></script>
+
+  <!-- Orientation Handling -->
+  <script>
+    function checkOrientation() {
+      const warning = document.getElementById('rotate-notice');
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const isPortrait = window.innerHeight > window.innerWidth;
+      warning.style.display = (isMobile && isPortrait) ? 'flex' : 'none';
+    }
+
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    window.addEventListener('load', checkOrientation);
+  </script>
+</body>
+</html>

@@ -1,14 +1,17 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = 3001;
-const host = '0.0.0.0'; // This allows access from your local network
+const port = process.env.PORT || 3000;
 
-// Serve static files from 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve all static files from root and public/
+app.use(express.static(__dirname)); // serve index.html
+app.use(express.static(path.join(__dirname, 'public'))); // serve public assets
 
-// Start server
-app.listen(port, host, () => {
-  console.log(`🌐 Local access:     http://localhost:${port}`);
-  console.log(`📱 Network access:  http://172.16.0.84:${port}`);
+// Fallback to index.html
+app.get('*', (_, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.listen(port, () => {
+  console.log(`✅ App running: http://localhost:${port}`);
 });
