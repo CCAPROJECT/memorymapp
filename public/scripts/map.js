@@ -25,7 +25,7 @@ let hoverNode = null;
 
 // ✅ FIXED image path
 const mapImg = new Image();
-mapImg.src = 'public/world-map.jpg';
+mapImg.src = 'public/world-map.webp';
 mapImg.onerror = () => console.warn("🌍 Failed to load world-map.jpg");
 
 // 🌍 Continent nodes
