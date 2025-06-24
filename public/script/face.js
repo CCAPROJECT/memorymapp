@@ -1,25 +1,25 @@
 let detector;
-const video = document.getElementById("camera");
+let video = document.getElementById("camera");
 
 async function setupCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     video.onloadedmetadata = () => {
-      video.play();
+      video.play(); // Ensure video starts
       resolve(video);
     };
   });
 }
 
 async function initFaceDetection() {
-  await tf.setBackend("webgl");
+  await tf.setBackend('webgl');
+  await tf.ready();
 
   const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
   detector = await faceLandmarksDetection.createDetector(model, {
-    runtime: "mediapipe",
-    refineLandmarks: true, // 👈 enables iris and lips detection
-    solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh", // ✅ correct URL
+    runtime: 'tfjs', // ✅ USE THIS (not 'mediapipe')
+    refineLandmarks: true,
   });
 
   detectLoop();
@@ -39,20 +39,27 @@ async function detectLoop() {
     const leftMouth = keypoints[61];
     const rightMouth = keypoints[291];
     const mouthDistance = Math.abs(rightMouth.x - leftMouth.x);
-    if (mouthDistance > 60) console.log("😄 Smile detected");
+    if (mouthDistance > 60) {
+      console.log("😄 Smile detected");
+    }
 
-    // Blink detection (Right Eye: 159 & 145)
+    // Blink detection
     const upperEye = keypoints[159].y;
     const lowerEye = keypoints[145].y;
     const eyeOpenness = Math.abs(upperEye - lowerEye);
-    if (eyeOpenness < 2.5) console.log("👁️ Blink detected");
+    if (eyeOpenness < 2.5) {
+      console.log("👁️ Blink detected");
+    }
 
     // Look direction
     const nose = keypoints[1].x;
     const faceCenter = (leftMouth.x + rightMouth.x) / 2;
     const delta = nose - faceCenter;
-    if (delta > 15) console.log("👈 Looking right");
-    else if (delta < -15) console.log("👉 Looking left");
+    if (delta > 15) {
+      console.log("👈 Looking right");
+    } else if (delta < -15) {
+      console.log("👉 Looking left");
+    }
   }
 
   requestAnimationFrame(detectLoop);

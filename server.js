@@ -1,17 +1,16 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-// Serve all static files from root and public/
-app.use(express.static(__dirname)); // serve index.html
-app.use(express.static(path.join(__dirname, 'public'))); // serve public assets
+// Serve static assets from 'public' folder at /public
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// Fallback to index.html
-app.get('*', (_, res) => {
+// Serve index.html from root URL
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(port, () => {
-  console.log(`✅ App running: http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
