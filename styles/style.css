@@ -27,9 +27,8 @@ canvas {
   display: none;
 }
 
-/* 🔁 Rotate Notice Styling */
 #rotate-notice {
-  display: none;  /* keep hidden by default */
+  display: none;
   position: fixed;
   top: 0; left: 0;
   width: 100vw;
@@ -40,8 +39,14 @@ canvas {
   text-align: center;
   z-index: 9999;
   padding: 30px;
-  display: flex; /* add this */
   align-items: center;
   justify-content: center;
   flex-direction: column;
+}
+
+/* Optional fallback (if JS fails), only on mobile portrait */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  #rotate-notice {
+    display: flex;
+  }
 }
