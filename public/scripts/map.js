@@ -60,6 +60,8 @@ for (const node of nodes) {
   previews[node.name] = img;
 }
 
+
+
 // ✨ Particles
 const continentParticles = [];
 
@@ -274,7 +276,6 @@ window.addEventListener("load", () => {
 });
 
 // 📸 CAMERA + EMOTION INTEGRATION (MediaPipe FaceMesh + TensorFlow)
-let detector;
 const video = document.getElementById("camera");
 
 async function setupCamera() {
@@ -296,9 +297,8 @@ async function initFaceDetection() {
 
   const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
   detector = await faceLandmarksDetection.createDetector(model, {
-    runtime: "mediapipe",
+    runtime: "tfjs",
     refineLandmarks: true,
-    solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"
   });
 
   detectLoop();

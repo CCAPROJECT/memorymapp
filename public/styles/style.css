@@ -50,3 +50,6 @@ canvas {
     display: flex;
   }
 }
+#camera {
+  display: none !important;
+}

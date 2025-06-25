@@ -1,3 +1,10 @@
+
+#!/bin/bash
+
+echo "🔧 Injecting working blink detection and audio fixes..."
+
+# Replace face.js with working code
+cat > public/scripts/face.js <<'EOF'
 let detector;
 let video = document.getElementById("camera");
 const audio = document.getElementById("smile-sound");
@@ -75,3 +82,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.log("🔓 Audio unlocked");
   }).catch(e => console.warn("🔇 Audio unlock failed:", e));
 });
+EOF
+
+echo "✅ Blink detection script installed at public/scripts/face.js"

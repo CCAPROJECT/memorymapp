@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <title>Memory Map</title>
 
- <!-- Favicon & Preload -->
- <link rel="icon" href="/public/ccalogo.png" type="image/png" />
- <link rel="preload" as="image" href="/public/sound.mp3" />
+  <!-- Favicon & Preload -->
+  <link rel="icon" href="/public/ccalogo.png" type="image/png" />
+  <link rel="preload" as="fetch" crossorigin="anonymous" href="/public/sound.mp3" />
 
- <!-- Styles -->
- <link rel="stylesheet" href="/styles/style.css" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles/style.css" />
 
   <!-- Responsive Meta -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,6 +21,7 @@
       overflow: hidden;
       background-color: black;
     }
+
     #rotate-notice {
       display: none;
       position: fixed;
@@ -36,15 +37,18 @@
       text-align: center;
       padding: 20px;
     }
+
     canvas {
       position: absolute;
       top: 0; left: 0;
       z-index: 0;
     }
+
     #face-canvas {
       pointer-events: none;
       z-index: 998;
     }
+
     #tooltip.label {
       position: absolute;
       background: rgba(0, 0, 0, 0.7);
@@ -56,15 +60,18 @@
       z-index: 999;
       display: none;
     }
+
     #camera {
-      position: fixed;
-      bottom: 15px;
-      right: 15px;
-      width: 180px;
-      border: 2px solid white;
-      border-radius: 8px;
-      z-index: 999;
-    }
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  width: 180px;
+  border: 2px solid white;
+  border-radius: 8px;
+  z-index: 999;
+  transform: scaleX(-1); /* ✅ MIRROR THE VIDEO */
+}
+
   </style>
 </head>
 <body>
@@ -76,6 +83,7 @@
   <!-- Webcam Feed -->
   <video id="camera" autoplay muted playsinline></video>
 
+  <!-- Smile Sound -->
   <audio id="smile-sound" src="public/sound.mp3" preload="auto"></audio>
 
   <!-- Tooltip -->
@@ -86,26 +94,23 @@
     Please rotate your device to landscape mode for the best experience.
   </div>
 
-  <!-- TensorFlow + Models -->
+  <!-- TensorFlow & Models -->
+  <audio id="smile-sound" src="/public/sound.mp3" preload="auto"></audio>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+  <script src="/public/scripts/face.js" type="module"></script>
+  
 
-
-  <!-- Custom Scripts -->
-  <script src="scripts/map.js"></script>
-  <!-- To this -->
+  <!-- Custom Script -->
   <script src="public/scripts/map.js"></script>
 
-  <!-- Orientation Handling -->
+  <!-- Emotion Detection Script -->
   <script>
-    let detector;
     const video = document.getElementById("camera");
     const audio = document.getElementById("smile-sound");
-    const startBtn = document.getElementById("start-btn");
-  
+
     async function setupCamera() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       video.srcObject = stream;
@@ -116,7 +121,7 @@
         };
       });
     }
-  
+
     async function initFaceDetection() {
       await tf.setBackend("webgl");
       const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
@@ -127,23 +132,22 @@
       });
       detectLoop();
     }
-  
+
     let lastSmileTime = 0;
-  
+
     async function detectLoop() {
       if (!video || video.readyState < 2 || !detector) {
         requestAnimationFrame(detectLoop);
         return;
       }
-  
+
       const faces = await detector.estimateFaces(video);
       if (faces.length > 0) {
         const keypoints = faces[0].keypoints;
-  
         const leftMouth = keypoints[61];
         const rightMouth = keypoints[291];
         const mouthDistance = Math.abs(rightMouth.x - leftMouth.x);
-  
+
         if (mouthDistance > 60) {
           const now = Date.now();
           if (now - lastSmileTime > 3000) {
@@ -153,23 +157,22 @@
           }
         }
       }
-  
+
       requestAnimationFrame(detectLoop);
     }
-  
-    startBtn.addEventListener("click", async () => {
+
+    // Auto-start on load (no button needed)
+    window.addEventListener("DOMContentLoaded", async () => {
       try {
         await setupCamera();
         await initFaceDetection();
-  
-        // Unlock audio context
+
+        // Unlock audio
         await audio.play().then(() => {
           audio.pause();
           audio.currentTime = 0;
           console.log("🔓 Audio unlocked");
         });
-  
-        startBtn.style.display = "none";
       } catch (err) {
         console.error("❌ Setup failed:", err);
       }
