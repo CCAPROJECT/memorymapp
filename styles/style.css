@@ -39,23 +39,23 @@ html, body {
     transform: scaleX(-1);
   }
 
-  #rotate-notice {
-    display: none; /* Hidden by default */
+/* 🔁 Rotate Notice Styling */
+#rotate-notice {
+    display: none;  /* keep hidden by default */
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: black;
+    background: rgba(0,0,0,0.9);
     color: white;
-    z-index: 10000;
-    font-size: 1.8em;
+    font-size: 1.5rem;
     text-align: center;
-    justify-content: center;
+    z-index: 9999;
+    padding: 30px;
+    display: flex; /* add this */
     align-items: center;
+    justify-content: center;
     flex-direction: column;
-    padding: 20px;
-    display: none;
-    overflow: hidden;
-    display: flex;
   }
+    
+  
