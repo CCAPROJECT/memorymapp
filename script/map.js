@@ -86,3 +86,20 @@ function draw() {
   requestAnimationFrame(draw);
 }
 draw();
+
+function checkOrientation() {
+  const notice = document.getElementById("rotate-notice");
+  const isPortrait = window.innerHeight > window.innerWidth;
+
+  if (isPortrait) {
+    notice.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  } else {
+    notice.style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+}
+
+window.addEventListener("resize", checkOrientation);
+window.addEventListener("orientationchange", checkOrientation);
+window.addEventListener("DOMContentLoaded", checkOrientation);
