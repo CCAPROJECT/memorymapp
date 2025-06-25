@@ -1,0 +1,74 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #0a1a2f;
+    height: 100%; /* add this */
+    width: 100%;  /* add this */
+  }
+  
+  canvas {
+    display: block;
+    position: fixed; /* fix canvas position */
+    top: 0;
+    left: 0;
+    width: 100vw;  /* make sure canvas fills viewport */
+    height: 100vh;
+  }
+  
+  .label {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 5px;
+    pointer-events: none;
+    display: none;
+  }
+  
+  #camera {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 1px;       /* tiny size */
+    height: 1px;
+    opacity: 0;       /* fully transparent */
+    pointer-events: none;
+    z-index: -1;      /* hide behind everything */
+    transform: scaleX(-1);
+  }
+
+  #rotate-notice {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    color: white;
+    z-index: 9999;
+    font-size: 1.8em;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  #rotate-notice.show {
+    display: flex; /* Show in portrait mode */
+  }
+  
+  .rotate-message {
+    max-width: 90vw;
+    line-height: 1.5;
+  }
+  
+  /* Optional fallback (if JS fails), only on mobile portrait */
+  @media screen and (max-width: 768px) and (orientation: portrait) {
+    #rotate-notice {
+      display: flex;
+    }
+  }
