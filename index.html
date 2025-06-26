@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Memory Map</title>
+
+  <!-- Favicon & Preload -->
+  <link rel="icon" href="/public/ccalogo.png" type="image/png" />
+
+  <!-- Responsive Meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
+    #rotate-notice {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 1000;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      color: white;
+      font-size: 1.5em;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 0;
+    }
+
+    #face-canvas {
+      pointer-events: none;
+      z-index: 998;
+    }
+
+    #tooltip.label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+    }
+
+    #camera {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      width: 1px;         /* visually hidden */
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+      transform: scaleX(-1); /* still mirrors if needed */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Canvas Layers -->
+  <canvas id="canvas"></canvas>
+  <canvas id="face-canvas"></canvas>
+
+  <!-- Webcam Feed -->
+  <video id="camera" autoplay muted playsinline></video>
+
+  <!-- Sound -->
+  <audio id="smile-sound" src="/public/sound.mp3" preload="auto"></audio>
+
+  <!-- Tooltip -->
+  <div id="tooltip" class="label"></div>
+
+  <!-- Rotate Notice -->
+  <div id="rotate-notice">
+    Please rotate your device to landscape mode for the best experience.KAYD
+  </div>
+  
+  
+
+  <!-- TensorFlow -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+
+  <!-- Optional: WASM backend for fallback -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm"></script>
+
+  <!-- Your Map Script -->
+  <script src="/public/scripts/map.js" type="module"></script>
+
+  <!-- Smile Detector Script -->
+  <script type="module">
+    const video = document.getElementById("camera");
+    const audio = document.getElementById("smile-sound");
+
+    let detector;
+    let lastSmileTime = 0;
+
+    async function setupCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      return new Promise(resolve => {
+        video.onloadedmetadata = () => {
+          video.play();
+          resolve(video);
+        };
+      });
+    }
+
+    async function initDetector() {
+      await tf.setBackend("webgl");
+      const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
+      detector = await faceLandmarksDetection.createDetector(model, {
+        runtime: "tfjs",
+        refineLandmarks: true,
+      });
+      detectLoop();
+    }
+
+    async function detectLoop() {
+      if (!detector || !video || video.readyState < 2) {
+        requestAnimationFrame(detectLoop);
+        return;
+      }
+
+      const faces = await detector.estimateFaces(video);
+      if (faces.length > 0) {
+        const keypoints = faces[0].keypoints;
+        const left = keypoints[61].x;
+        const right = keypoints[291].x;
+        const smileWidth = Math.abs(right - left);
+
+        if (smileWidth > 50) {
+          const now = Date.now();
+          if (now - lastSmileTime > 3000) {
+            lastSmileTime = now;
+            audio.currentTime = 0;
+            audio.play().catch(err => console.warn("🔇 Audio error:", err));
+            console.log("😄 Smile detected!");
+          }
+        }
+      }
+
+      requestAnimationFrame(detectLoop);
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await setupCamera();
+        await initDetector();
+
+        // Unlock audio on load
+        await audio.play().then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          console.log("🔓 Audio unlocked");
+        }).catch(() => {
+          console.warn("🔇 Auto-unlock failed — will rely on smile trigger.");
+        });
+      } catch (err) {
+        console.error("❌ Setup error:", err);
+      }
+    });
+  </script>
+</body>
+</html>
